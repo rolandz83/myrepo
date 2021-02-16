@@ -3,6 +3,7 @@
 from datetime import datetime
 from bs4 import BeautifulSoup
 import pandas
+import hashlib
 
 #base_url = "https://www.zillow.com/"
 #town = input('Enter town and state e.g: "hicksville NY"')
@@ -26,6 +27,7 @@ def start_parse(url, page):
 
     for cards in allcards:
         listing = {}
+        h = hashlib.sha256()
         address = cards.find("address",{"class":"list-card-addr"}).text.split(",")
         listing["Address"] = address[0]
         listing["Locality"] = address[1] + ", " + address[2]
@@ -34,6 +36,8 @@ def start_parse(url, page):
         listing["Listing URL"] = cards.find("a", {"class":"list-card-link"}).attrs['href']
         listing["Date"] = datetime.now().strftime("%d-%B-%Y %H:%M:%S:%f")
         listing["PageNum"] = str(page)
+        h.update(str.encode(listing["Address"] + listing["Locality"] + listing["Price"] + listing["Status"]))
+        listing["Hash Code"] = h.hexdigest()
         data.append(listing)
 
     if is_it_lastpage(soup):
